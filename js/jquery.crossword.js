@@ -25,7 +25,7 @@
 			
 			// append clues markup after puzzle wrapper div
 			// This should be moved into a configuration object
-			this.after('<div id="puzzle-clues"><h2>Across</h2><ol id="across"></ol><h2>Down</h2><ol id="down"></ol></div>');
+			this.after('<div id="puzzle-clues"><h1>MENDATAR</h1><ul id="across" class="no-bullets"></ul><h1>MENURUN</h1><ul id="down" class="no-bullets"></ul></div>');
 			
 			// initialize some variables
 			var tbl = ['<table id="puzzle">'],
@@ -97,6 +97,8 @@
 							
 							e.preventDefault();
 							return false;
+						} else if (e.keyCode === 13) {
+							util.revealAnswer(e)
 						} else {
 							
 							console.log('input keyup: '+solvedToggle);
@@ -183,15 +185,16 @@
 						// set up array of coordinates for each problem
 						entries.push(i);
 						entries[i] = [];
+						
 
 						for (var x=0, j = puzz.data[i].answer.length; x < j; ++x) {
 							entries[i].push(x);
 							coords = puzz.data[i].orientation === 'across' ? "" + puzz.data[i].startx++ + "," + puzz.data[i].starty + "" : "" + puzz.data[i].startx + "," + puzz.data[i].starty++ + "" ;
-							entries[i][x] = coords; 
+							entries[i][x] = coords;
 						}
 
 						// while we're in here, add clues to DOM!
-						$('#' + puzz.data[i].orientation).append('<li tabindex="1" data-position="' + i + '">' + puzz.data[i].clue + '</li>'); 
+						$('#' + puzz.data[i].orientation).append('<li tabindex="1" data-position="' + i + '">' + puzz.data[i].position + '. ' + puzz.data[i].clue + '</li>'); 
 					}				
 					
 					// Calculate rows/cols by finding max coords of each entry, then picking the highest
@@ -298,17 +301,24 @@
 						.get()
 						.join('');
 					
-					//console.log(currVal + " " + valToCheck);
+					console.log(currVal + " " + valToCheck);
 					if(valToCheck === currVal){	
 						$('.active')
 							.addClass('done')
-							.removeClass('active');
+							.removeClass('active')
+							.removeClass('wrong');
 					
 						$('.clues-active').addClass('clue-done');
 
 						solved.push(valToCheck);
 						solvedToggle = true;
 						return;
+					}else{
+						if (valToCheck.length == currVal.length) {
+							$('.active')
+							.addClass('wrong')
+							.removeClass('active');
+						}
 					}
 					
 					currOri === 'across' ? nav.nextPrevNav(e, 39) : nav.nextPrevNav(e, 40);
@@ -541,6 +551,17 @@
 					} else {
 						return false;
 					}
+				},
+
+				revealAnswer: function(e){
+					util.getActivePositionFromClassGroup($(e.target));
+					answer = puzz.data[activePosition].answer.toLowerCase();
+					index = 0;
+					temp = $('.position-' + activePosition + ' input')
+						.map(function() {
+					  		return $(this).val(answer[index++].toUpperCase());
+						});
+					puzInit.checkAnswer(e);
 				}
 				
 			}; // end util object
